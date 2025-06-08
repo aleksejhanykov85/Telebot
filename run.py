@@ -3,8 +3,6 @@ from aiogram import Bot, Dispatcher
 from config import TG_TOKEN
 from app.handlers import router
 
-
-
 async def main():
     bot = Bot(token=TG_TOKEN)
     dp = Dispatcher()
@@ -14,4 +12,3 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
         
-    
