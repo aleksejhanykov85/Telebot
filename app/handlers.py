@@ -4,6 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from app.generate import ai_generate
+import app.keyboards as kb
 
 router = Router()
 
@@ -12,7 +13,7 @@ class Gen(StatesGroup):
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await message.answer('Привет!\nнапишите Ваш запрос')
+    await message.answer(f'Привет {message.from_user.first_name}!\nнапишите Ваш запрос',reply_markup=kb.main)
 
 
 @router.message(Gen.wait)
