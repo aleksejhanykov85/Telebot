@@ -123,10 +123,8 @@ async def finally_reg(message: Message, state: FSMContext):
 @router.message(F.text == 'Составить меню на неделю')
 async def generating(message: Message, state: FSMContext):
     await state.set_state(Gen.wait)
-    text = f'''Составь меню на неделю
-    с учетом моих предпочтений: {user_dict['preferences']} и 
-    моих болезней: {user_dict['diseases']}'''
-    responce = await ai_generate(text)
+    await message.answer(message.text)
+    responce = await ai_generate(message.text)
     await message.answer(responce)
     await state.clear()
 
