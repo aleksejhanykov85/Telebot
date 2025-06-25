@@ -6,8 +6,12 @@ reg = ReplyKeyboardMarkup(keyboard=[
 
 
 main = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Добавить проблему/предпочтения')],
-    [KeyboardButton(text='Установить напоминание')],
-    [KeyboardButton(text='Составить меню на неделю')],
-],resize_keyboard=True,
-input_field_placeholder='Выберите пункт меню:')
+    [KeyboardButton(text='Добавить проблему/предпочтение'),KeyboardButton(text='Установить напоминание')],
+    [KeyboardButton(text='Составить меню на день'),KeyboardButton(text='Изменить данные')],
+],resize_keyboard=True)
+
+
+add_new_pref_dis = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text="Предпочтение")],
+    [KeyboardButton(text='Проблему')]
+],resize_keyboard=True)
