@@ -7,7 +7,7 @@ reg = ReplyKeyboardMarkup(keyboard=[
 
 main = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Добавить проблему/предпочтение'),KeyboardButton(text='Установить напоминание')],
-    [KeyboardButton(text='Составить меню на день'),KeyboardButton(text='Изменить данные')],
+    [KeyboardButton(text='Составить меню на день'),KeyboardButton(text='Изменить данные')]
 ],resize_keyboard=True)
 
 
