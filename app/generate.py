@@ -1,5 +1,10 @@
 from openai import AsyncOpenAI
-from config import AI_TOKEN
+from dotenv import load_dotenv
+
+import os
+
+load_dotenv()
+AI_TOKEN = int(os.getenv('AI_TOKEN',0))
 
 client = AsyncOpenAI(
   base_url="https://openrouter.ai/api/v1",

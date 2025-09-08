@@ -1,10 +1,13 @@
-import asyncio
 from aiogram import Bot, Dispatcher
-from config import TG_TOKEN
-
+from dotenv import load_dotenv
 from app.handlers_user import router
 from app.database.models import async_main
 
+import os
+import asyncio
+
+load_dotenv()
+TG_TOKEN = int(os.getenv('TG_TOKEN',0))
 
 async def main():
     await async_main()
