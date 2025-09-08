@@ -1,20 +1,23 @@
+# ///////////////////
+# Hanldlers for users
+# ///////////////////
+
 from aiogram import F, Router
 from aiogram.types import Message
 from aiogram.filters import CommandStart, or_f
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
-from app.generate import ai_generate
 from aiogram import types
+from aiogram.types import Message
+from app.reminder import *
 
-
-import datetime as dt
-import asyncio
 import app.keyboards as kb
 import app.database.requests as rq
 
+def is_valid_message(text):
+    return (any(char.isalpha() for char in text) and len(text) >= 3) or text == "-"
 
 coefficient = {1: 1.2, 2: 1.375, 3: 1.55, 4: 1.725, 5: 1.9}
-
 
 async def cpfc(tg_id):    
     formula = int()
@@ -41,18 +44,7 @@ async def cpfc(tg_id):
 
     return  f'''{int(calories)}/{int(proteins)}/{int(fats)}/{int(carbohydrates)}'''
 
-
-def is_valid_message(text):
-    return (any(char.isalpha() for char in text) and len(text) >= 3) or text == "-"
-
-
 router = Router()
-
-
-# ///////////////////
-# Hanldlers for users
-# ///////////////////
-
 
 class Reg(StatesGroup):
     age = State()
@@ -67,11 +59,6 @@ class Reg(StatesGroup):
     cost = State()
 
 
-
-class Add_reminder(StatesGroup):
-    new_rem = State()
-
-
 class Add_new_pref(StatesGroup):
     new_pref = State()
 
@@ -80,9 +67,7 @@ class Add_new_dis(StatesGroup):
     new_dis = State()
 
 
-
 markup = types.ReplyKeyboardRemove()
-
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
@@ -90,26 +75,11 @@ async def cmd_start(message: Message):
     await message.answer((f'''Привет {message.from_user.first_name}!
 я бот, который поможет составить тебе меню по нужным тебе КБЖУ с учетом предпочтений и проблем со здоровьем.
 Для начала нужно зарегистрироваться'''),reply_markup=kb.reg)
-     
-
-# @router.message(or_f(F.text == 'Зарегистрироваться', F.text == 'Изменить данные'))
-# async def reg_age(message: Message, state: FSMContext):
-#     await state.set_state(Reg.age)
-#     await message.answer('Введите возраст',reply_markup=markup)
-
-
-# @router.message(Reg.age)
-# async def reg_sex(message: Message, state: FSMContext):
-#     await state.update_data(age=message.text)
-#     await state.set_state(Reg.sex)
-#     await message.answer('Введите пол (м/ж)')
     
-
 @router.message(or_f(F.text == 'Зарегистрироваться', F.text == 'Изменить данные'))
 async def reg_age(message: Message, state: FSMContext):
     await state.set_state(Reg.age)
     await message.answer('Введите возраст',reply_markup=markup)
-
 
 @router.message(Reg.age)
 async def reg_sex(message: Message, state: FSMContext):
@@ -119,7 +89,6 @@ async def reg_sex(message: Message, state: FSMContext):
     await state.update_data(age=message.text)
     await state.set_state(Reg.sex)
     await message.answer('Введите пол (м/ж)')
-
 
 @router.message(Reg.sex)
 async def reg_lifestyle(message: Message, state: FSMContext):
@@ -137,7 +106,6 @@ async def reg_lifestyle(message: Message, state: FSMContext):
     await state.set_state(Reg.physical_activity)
     await message.answer('Выберите физическую активность')
 
-
 @router.message(Reg.physical_activity)
 async def reg_diseases(message: Message, state: FSMContext):
     if message.text not in ["1","2","3","4","5"]:
@@ -146,7 +114,6 @@ async def reg_diseases(message: Message, state: FSMContext):
     await state.update_data(physical_activity=message.text)
     await state.set_state(Reg.diseases)
     await message.answer('Введите проблемы со здоровьем (если отсутствуют поставьте -)')
-
 
 @router.message(Reg.diseases)
 async def reg_preferences(message: Message, state: FSMContext):
@@ -157,7 +124,6 @@ async def reg_preferences(message: Message, state: FSMContext):
     await state.set_state(Reg.preferences)
     await message.answer('Введите вкусовые предпочтения (если отсутствуют поставьте -)')
 
-
 @router.message(Reg.preferences)
 async def reg_current_weight(message: Message, state: FSMContext):
     if not is_valid_message(message.text):
@@ -166,7 +132,6 @@ async def reg_current_weight(message: Message, state: FSMContext):
     await state.update_data(preferences=message.text)
     await state.set_state(Reg.number_of_meals)
     await message.answer('Введите сколько приемов пищи в день')
-
 
 @router.message(Reg.number_of_meals)
 async def reg_number_of_meals(message: Message, state: FSMContext):
@@ -177,7 +142,6 @@ async def reg_number_of_meals(message: Message, state: FSMContext):
     await state.set_state(Reg.cost)
     await message.answer('Введите бюджет продуктов на неделю')
 
-
 @router.message(Reg.cost)
 async def reg_cost(message: Message, state: FSMContext):
     if not message.text.isdigit() or int(message.text) <= 0:
@@ -186,7 +150,6 @@ async def reg_cost(message: Message, state: FSMContext):
     await state.update_data(cost=message.text)
     await state.set_state(Reg.current_weight)
     await message.answer('Введите текущий вес')
-
 
 @router.message(Reg.current_weight)
 async def reg_current_weight(message: Message, state: FSMContext):
@@ -197,7 +160,6 @@ async def reg_current_weight(message: Message, state: FSMContext):
     await state.set_state(Reg.desired_weight)
     await message.answer('Введите желаемый вес')
 
-
 @router.message(Reg.desired_weight)
 async def reg_desired_weight(message: Message, state: FSMContext):
     if not message.text.isdigit() or int(message.text) <= 0:
@@ -206,7 +168,6 @@ async def reg_desired_weight(message: Message, state: FSMContext):
     await state.update_data(desired_weight=message.text)
     await state.set_state(Reg.height)
     await message.answer('Введите рост')
-
 
 @router.message(Reg.height)
 async def reg_height(message: Message, state: FSMContext):
@@ -232,17 +193,14 @@ Cost: {user.cost}
     ''', reply_markup=kb.main)
     await state.clear()
 
-
 @router.message(F.text == 'Добавить проблему/предпочтение')
 async def add_new(message: Message):
     await message.answer("Выберите что добавить", reply_markup=kb.add_new_pref_dis)
-
 
 @router.message(F.text == 'Предпочтение')
 async def add_new_pref(message: Message, state: FSMContext):
     await state.set_state(Add_new_pref.new_pref)
     await message.answer('Добавлять по одному предпочтению за раз', reply_markup=markup)
-
 
 @router.message(Add_new_pref.new_pref)
 async def add_new_pref(message: Message, state: FSMContext):
@@ -252,12 +210,10 @@ async def add_new_pref(message: Message, state: FSMContext):
     await message.answer(f"{pref}", reply_markup=kb.main)
     await state.clear()
 
-
 @router.message(F.text == 'Проблему')
 async def add_new_dis(message: Message, state: FSMContext):
     await state.set_state(Add_new_dis.new_dis)
     await message.answer('Добавлять по одной проблеме за раз', reply_markup=markup)
-
 
 @router.message(Add_new_dis.new_dis)
 async def add_new_dis(message: Message, state: FSMContext):
@@ -266,80 +222,6 @@ async def add_new_dis(message: Message, state: FSMContext):
     dis = await rq.add_new_dis(new_dis, message.from_user.id)
     await message.answer(f"{dis}", reply_markup=kb.main)
     await state.clear()
-
-
-# ////////////////
-# Hanldlers for AI
-# ////////////////
-
-
-# text_for_ii = f'''Составь меню на один день
-# c учетом моих пожеланий: {user_dict['preferences']}
-# и моих болезней: {user_dict['diseases']}'''
-
-
-    
-
-class Gen(StatesGroup):
-    wait = State()
-
-
-@router.message(Gen.wait)
-async def stop_flood(message: Message):
-    await message.answer("Подождите, Ваш запрос обрабатывается")
-
-
-@router.message(F.text == 'Составить меню на день')
-async def generating(message: Message, state: FSMContext):
-    max_len = 4096
-    cw = float(await rq.get_current_weight(message.from_user.id))
-    dw = float(await rq.get_desired_weight(message.from_user.id))
-    difr = dw - cw
-    pref = str(*await rq.get_pref(message.from_user.id))
-    dis = str(*await rq.get_dis(message.from_user.id))
-    num = str(*await rq.get_num_of_meals(message.from_user.id))
-    cost = str(*await rq.get_cost(message.from_user.id))
-    if difr > 0:
-        text_for_ii = f'''Составь меню на один день
-c учетом моих пожеланий: {pref}
-и моих болезней: {dis} и чтобы набрать {difr} кг, КБЖУ {await cpfc(message.from_user.id)}, {num} приемов пищи и с бюджетом {cost} руб'''
-    elif difr < 0:
-        text_for_ii = f'''Составь меню на один день
-c учетом моих пожеланий: {pref}
-и моих болезней: {dis} и чтобы сбросить {abs(difr)} кг, КБЖУ {await cpfc(message.from_user.id)}, {num} приемов пищи и с бюджетом {cost} руб'''
-    else:
-        text_for_ii = f'''Составь меню на один день
-c учетом моих пожеланий: {pref}
-и моих болезней: {dis} чтобы поддерживать вес {cw} кг, КБЖУ {await cpfc(message.from_user.id)}, {num} приемов пищи и с бюджетом {cost} руб'''
-    
-    await state.set_state(Gen.wait)
-    responce = await ai_generate(text_for_ii)
-    for i in range(0, len(responce), max_len):
-        part = responce[i:i + max_len]
-        await message.answer(part)
-    await state.clear()
-    await message.answer(text_for_ii)
-
-# /////////////
-# Time reminder
-# /////////////
-
-
-@router.message(F.text == 'Установить напоминание')
-async def remind(message: Message, state: FSMContext):
-    await state.set_state(Add_reminder.new_rem)
-    await message.answer('Напишите в какое время Вам напоминить?\nВ формате ДД.ММ ЧЧ:ММ', reply_markup=markup)
-
-
-@router.message(Add_reminder.new_rem)
-async def add_rem(message: Message, state: FSMContext):
-    await state.update_data(new_rem=message.text)
-    time_from_user = dt.datetime.strptime(message.text.strip(), '%d.%m %H:%M')
-    time_from_user = time_from_user.replace(year=dt.datetime.now().year)
-    time_rem = dt.datetime.now()
-    await asyncio.sleep((time_from_user-time_rem).total_seconds())
-    await message.answer('Напоминаю!')
-
 
 @router.message()
 async def not_but(message: Message):
