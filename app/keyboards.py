@@ -1,4 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram import types
 
 reg = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Зарегистрироваться')],
@@ -15,3 +16,5 @@ add_new_pref_dis = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text="Предпочтение")],
     [KeyboardButton(text='Проблему')]
 ],resize_keyboard=True)
+
+markup = types.ReplyKeyboardRemove()

@@ -7,15 +7,20 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from dotenv import load_dotenv
 from sqlalchemy import select, func
 from aiogram.fsm.state import State, StatesGroup
-from app.handlers_user import router
 from aiogram.fsm.context import FSMContext
 from aiogram import F, Bot
 import os
 from aiogram.filters import Command
+from aiogram import Router
+
+import logging
+
+adminr = Router()
 
 load_dotenv()
 ADMIN_ID = int(os.getenv('ADMIN_ID',0))
 
+logger = logging.getLogger(__name__)
 
 class BroadcastState(StatesGroup):
     waiting_for_broadcast_text = State()
@@ -35,19 +40,19 @@ def back_menu():
     ])
     return keyboard
 
-@router.message(F.text == "/admin")
+@adminr.message(Command("admin"))
 async def admin_panel(message: Message):
     if message.from_user.id != ADMIN_ID:
         await message.answer("У Вас нет доступа к этой команде.")
         return
     await message.answer("Добро пожаловать в админ-панель!", reply_markup=admin_main_menu())
     
-@router.callback_query(F.data == "back")
+@adminr.callback_query(F.data == "back")
 async def back_to_main(callback: CallbackQuery):
     await callback.message.edit_text("Админ-панель: Выберите действие", reply_markup=admin_main_menu())
     await callback.answer()
     
-@router.callback_query(F.data == "stats")
+@adminr.callback_query(F.data == "stats")
 async def process_stats(callback: CallbackQuery):
     async with async_session() as session:
         async with session.begin():
@@ -58,7 +63,7 @@ async def process_stats(callback: CallbackQuery):
     await callback.message.edit_text(text, reply_markup=back_menu())
     await callback.answer()
     
-@router.callback_query(F.data == "broadcast")
+@adminr.callback_query(F.data == "broadcast")
 async def process_broadcast(callback: CallbackQuery, state: FSMContext):
     async with async_session() as session:
         async with session.begin():
@@ -66,14 +71,14 @@ async def process_broadcast(callback: CallbackQuery, state: FSMContext):
             await state.set_state(BroadcastState.waiting_for_broadcast_text)
             await callback.answer()
     
-@router.callback_query(F.data == "settings")
+@adminr.callback_query(F.data == "settings")
 async def process_settings(callback: CallbackQuery):
     async with async_session() as session:
         async with session.begin():
             await callback.message.edit_text("Доп. настройки:", reply_markup=back_menu())
             await callback.answer()
     
-@router.message(BroadcastState.waiting_for_broadcast_text)
+@adminr.message(BroadcastState.waiting_for_broadcast_text)
 async def handle_broadcast_text(message: Message, state: FSMContext, bot: Bot):
     broadcast_text = message.text
     
@@ -88,6 +93,10 @@ async def handle_broadcast_text(message: Message, state: FSMContext, bot: Bot):
                 count += 1
             except Exception as e:
                 print(f"Не удалось отправить сообщение {user.tg_id}: {e}")
+                logger.error(
+                    "Не удалось отправить сообщение %s: %s",
+                    user.tg_id, e
+                )
         
         new_broadcast = Broadcast(message=broadcast_text)
         session.add(new_broadcast)

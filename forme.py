@@ -83,25 +83,6 @@
 
 
 
-n = int(input())
-lenf = int(input())
-m = set(input().split())
-max_len = lenf
-changes_count = 1
 
-for i in range(n - 1):
-    current_len = int(input())
-    current_words = input().split()
-    common_count = sum(1 for word in current_words if word not in m)
-    
-    if common_count != current_len:
-        current_len = common_count + len(m) 
 
-    elif common_count == current_len:
-        changes_count += 1
-        
-    max_len = max(max_len, current_len)
-    m = set(current_words)
-    
-print(changes_count, max_len)
-
+print("'\"")

@@ -1,6 +1,6 @@
 from sqlalchemy import BigInteger, String, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 import datetime
 
 engine = create_async_engine(url='sqlite+aiosqlite:///db.sqlite3')
@@ -44,6 +44,6 @@ class Broadcast(Base):
     message = mapped_column(String, nullable=False)
     sent_at = mapped_column(DateTime, default=datetime.datetime.now)
     
-async def async_main():
+async def async_user():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
